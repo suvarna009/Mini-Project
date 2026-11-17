@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Carnatic Notation Editor</title>
+
+  <!-- Libraries used for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Top menu bar -->
+  <div class="bar">
+    <b>Carnatic Notation Editor</b>
+
+    <div class="menu">
+      <button>File</button>
+      <div class="dd">
+        <button data-act="new">New composition</button>
+        <button data-act="save">Save <small>Ctrl+S</small></button>
+        <button data-act="open">Saved compositions…</button>
+        <button data-act="pdf">Export as PDF… <small>Ctrl+P</small></button>
+      </div>
+    </div>
+
+    <div class="menu">
+      <button>Edit</button>
+      <div class="dd">
+        <button data-act="undo">Undo <small>Ctrl+Z</small></button>
+        <button data-act="redo">Redo <small>Ctrl+Y</small></button>
+        <button data-act="addrow">Add avartana row</button>
+        <button data-act="clear">Clear all swaras and sahitya</button>
+      </div>
+    </div>
+
+    <div class="menu">
+      <button>Insert</button>
+      <div class="dd" id="insMenu">
+        <button data-sec="Pallavi">Pallavi</button>
+        <button data-sec="Anupallavi">Anupallavi</button>
+        <button data-sec="Charanam">Charanam</button>
+        <button data-sec="Chittaswaram">Chittaswaram</button>
+        <button data-sec="Muktayi Swaram">Muktayi swaram</button>
+        <button data-sec="New section">Custom section</button>
+      </div>
+    </div>
+
+    <div class="menu">
+      <button>Tools</button>
+      <div class="dd">
+        <button data-act="validate">Validate composition</button>
+        <button data-act="ctala">Create custom tala…</button>
+        <button data-act="craga">Create custom raga…</button>
+      </div>
+    </div>
+
+    <div class="menu">
+      <button>Help</button>
+      <div class="dd">
+        <button data-act="help">Notation guide and shortcuts</button>
+      </div>
+    </div>
+
+    <span id="docname"></span>
+  </div>
+
+  <!-- Composition details toolbar -->
+  <div class="tb">
+    <div class="grp">
+      <div class="gb">
+        <label>Title
+          <input id="fTitle" placeholder="Composition name" style="width:210px">
+        </label>
+        <label>Composer
+          <input id="fComp" placeholder="Composer" style="width:160px">
+        </label>
+      </div>
+      <div class="cap">Composition</div>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <label>Raga
+          <select id="fRaga"></select>
+        </label>
+        <label>Tala
+          <select id="fTala"></select>
+        </label>
+        <label>Notes per beat
+          <select id="fK">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+          </select>
+        </label>
+      </div>
+      <div class="cap">Raga and tala</div>
+    </div>
+
+    <div class="grp gout">
+      <div class="gb">
+        <button data-act="validate">✓ Validate</button>
+        <button class="pri" data-act="pdf">Export PDF</button>
+      </div>
+      <div class="cap">Output</div>
+    </div>
+  </div>
+
+  <!-- Cell formatting toolbar -->
+  <div class="fb" id="fb" aria-label="Format cell">
+    <div class="grp fl0">
+      <b class="fl">Format cell</b>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <button data-f="o:1" title="Dot above (upper octave)">Ṡ</button>
+        <button data-f="o:-1" title="Dot below (lower octave)">Ṣ</button>
+      </div>
+      <div class="cap">Octave dots</div>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <button data-f="b:1" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button data-f="z:-1" title="Smaller text">A−</button>
+        <button data-f="z:1" title="Larger text">A+</button>
+      </div>
+      <div class="cap">Font</div>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <button data-f="ub:1" title="Underline (faster notes)"><u>U</u></button>
+        <button data-f="ub:2" title="Double underline"><span class="du">U</span></button>
+        <button data-f="ua:1" title="Line above"><span class="ol">&nbsp;&nbsp;&nbsp;</span></button>
+        <button data-f="ua:2" title="Double line above"><span class="ol2">&nbsp;&nbsp;&nbsp;</span></button>
+      </div>
+      <div class="cap">Lines</div>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <button data-f="k:1" title="Kampita gamaka mark">~</button>
+        <button data-t="," title="Hold one beat">,</button>
+        <button data-t=";" title="Hold two beats">;</button>
+        <button data-t="-" title="Hold">-</button>
+      </div>
+      <div class="cap">Carnatic marks</div>
+    </div>
+
+    <div class="grp">
+      <div class="gb">
+        <button data-x="1" id="extBtn" title="Select several cells: turn on, then tap the last cell">⇔ Range</button>
+        <button data-f="x:1" title="Remove formatting">Clear</button>
+      </div>
+      <div class="cap"><span id="selinfo">Selection</span></div>
+    </div>
+  </div>
+
+  <!-- The notation sheet (filled in by algorithm.js) -->
+  <div id="sheet">
+    <h1 id="shTitle"></h1>
+    <div id="shMeta"></div>
+    <div id="shRaga"></div>
+    <div id="secs"></div>
+  </div>
+
+  <!-- Print / PDF view -->
+  <div id="pv"></div>
+
+  <!-- Validation messages -->
+  <div id="msgs"></div>
+
+  <!-- On-screen swara pad for phones -->
+  <div id="pad" aria-label="Swara pad"></div>
+
+  <!-- Status bar -->
+  <div id="status">
+    <span id="st">Ready. Type S, P, or a letter plus a number (R2, G3, M1); the cursor moves on by itself.</span>
+    <span id="stats"></span>
+  </div>
+
+  <!-- Pop-up dialog -->
+  <div id="modal" hidden>
+    <div id="mc" role="dialog" aria-modal="true">
+      <h2 id="mt"></h2>
+      <div id="mb"></div>
+      <div id="mf"></div>
+    </div>
+  </div>
+
+  <script src="algorithm.js"></script>
+</body>
+
+</html>

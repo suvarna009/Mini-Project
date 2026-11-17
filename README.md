@@ -98,6 +98,3 @@ Saved compositions are associated with the browser and device being used. Cleari
 3. Gopalakrishna Palem – CarMusTy: Carnatic Music Typesetting.
 4. Srikumar K. S. – Carnot: Carnatic Music Notation Rendering Engine.
 5. Ragu Magu – Note-a-Bhairavi, open-source Carnatic music notation editor.
-
-## Team
-- Sakshi
